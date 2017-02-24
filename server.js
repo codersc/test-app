@@ -1,14 +1,15 @@
+var path = require('path');
 var express = require('express');
-const Yelp = require('yelp');
-const mongoose = require('mongoose');
 var passport = require('passport');
 var session = require('express-session');
+const mongoose = require('mongoose');
+const Yelp = require('yelp');
 
 require('dotenv').load();
 
-var routes = require('./routes/index.js');
+require('./config/passport')(passport);
 
-const app = express();
+mongoose.connect(process.env.MONGO_URI);
 
 const yelp = new Yelp({
 	consumer_key: process.env.YELP_KEY,
@@ -17,14 +18,28 @@ const yelp = new Yelp({
 	token_secret: process.env.YELP_TOKEN_SECRET
 });
 
-require('./config/passport')(passport);
+var routes = require('./routes/index.js');
 
-mongoose.connect(process.env.MONGO_URI);
+const app = express();
 
-routes(app, yelp);
+app.use(session({
+	secret: 'testsecret',
+	resave: false,
+	saveUninitialized: true
+}));
+
+app.use(passport.initialize());
+
+app.use(passport.session());
+
+//app.use('/dist', express.static(process.cwd() + '/client/dist'));
+app.use(express.static(path.join(__dirname, '/client')));
+app.use('/css', express.static(path.join(__dirname, 'client/dist/css')));
+
+routes(app, yelp, passport);
 
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
-  console.log('Server listening...');
+	console.log(`Server listening on port ${port}...`)
 });

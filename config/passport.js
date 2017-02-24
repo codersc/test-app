@@ -5,6 +5,8 @@ var User = require('../models/users');
 var configAuth = require('./auth');
 
 module.exports = (passport) => {
+	console.log('User', User);
+
 	passport.serializeUser((user, done) => {
 		done(null, user.id);
 	});

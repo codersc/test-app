@@ -11,3 +11,5 @@ var User = new Schema({
 		publicRepos: Number
 	}
 });
+
+module.exports = mongoose.model('User', User);
